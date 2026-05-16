@@ -55,9 +55,14 @@ func (h *headerForwardRoundTripper) RoundTrip(req *http.Request) (*http.Response
 	return h.base.RoundTrip(reqCopy)
 }
 
-// buildHeaderForwardTripper constructs a headerForwardRoundTripper for the
+// BuildHeaderForwardTripper constructs a headerForwardRoundTripper for the
 // backend's pre-resolved HeaderForwardConfig. Returns base unchanged when no
 // header injection is configured or the effective header set is empty.
+//
+// Used by both the vMCP backend client (startup capability discovery) and the
+// per-session backend connector (long-lived MCP traffic). Exported so the
+// session backend in pkg/vmcp/session/internal/backend can share the same
+// transport-chain wiring.
 //
 // Fails loudly (constructor validation, per go-style.md) when a secret identifier
 // cannot be resolved through the provider, so a misconfigured backend surfaces
@@ -66,7 +71,7 @@ func (h *headerForwardRoundTripper) RoundTrip(req *http.Request) (*http.Response
 // Restricted header names (matching pkg/transport/middleware.RestrictedHeaders)
 // are rejected to prevent Host, Content-Length, Authorization, hop-by-hop, and
 // X-Forwarded-* spoofing via user-supplied config.
-func buildHeaderForwardTripper(
+func BuildHeaderForwardTripper(
 	ctx context.Context,
 	base http.RoundTripper,
 	cfg *vmcp.HeaderForwardConfig,
